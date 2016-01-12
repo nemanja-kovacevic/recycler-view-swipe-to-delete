@@ -156,20 +156,18 @@ public class MainActivity extends AppCompatActivity {
                 int swipedPosition = viewHolder.getAdapterPosition();
                 final TestAdapter adapter = (TestAdapter)mRecyclerView.getAdapter();
                 final String item = adapter.itemAt(swipedPosition);
-//                boolean undoOn = adapter.isUndoOn();
-//                if (undoOn) {
-//                    adapter.pendingRemoval(item);
-//                    adapter.notifyDataSetChanged();
-//                    new Handler().postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            adapter.timedRemoval(item);
-//                        }
-//                    }, 3000);
-//                } else {
-//                    adapter.remove(item);
-//                }
-                adapter.remove(item);
+                boolean undoOn = adapter.isUndoOn();
+                if (undoOn) {
+                    adapter.pendingRemoval(item);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.timedRemoval(item);
+                        }
+                    }, 3000);
+                } else {
+                    adapter.remove(item);
+                }
             }
 
             @Override
@@ -212,10 +210,6 @@ public class MainActivity extends AppCompatActivity {
                 initiated = true;
             }
 
-            @Override0
-            public void onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-            }
         };
         ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         mItemTouchHelper.attachToRecyclerView(mRecyclerView);
