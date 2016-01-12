@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="net.nemanjakovacevic.recyclerviewswipetodelete.MainActivity">
+    <item
+        android:id="@+id/menu_item_undo_checkbox"
+        android:checkable="true"
+        android:checked="false"
+        android:title="@string/menu_checkbox_undo"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_item_add_5_items"
+        android:title="@string/menu_add_5_items"
+        app:showAsAction="never"/>
+</menu>

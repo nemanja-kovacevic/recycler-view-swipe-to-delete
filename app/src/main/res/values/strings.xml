@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">RecyclerViewSwipeToDelete</string>
+    <string name="menu_checkbox_undo">Undo</string>
+    <string name="menu_add_5_items">Add 5 items</string>
+    <string name="button_undo">undo</string>
+</resources>
