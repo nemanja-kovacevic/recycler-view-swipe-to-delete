@@ -22,9 +22,12 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int PENDING_REMOVAL_TIMEOUT = 3000; // 3sec
 
     RecyclerView mRecyclerView;
 
@@ -64,79 +67,6 @@ public class MainActivity extends AppCompatActivity {
         setUpAnimationDecoratorHelper();
     }
 
-    private void setUpAnimationDecoratorHelper() {
-        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
-
-            Drawable background;
-            boolean initiated;
-
-            @Override
-            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-
-                if (!initiated) {
-                    init();
-                }
-
-                if (parent.getItemAnimator().isRunning()) {
-                    // find first child with translationY > 0
-                    // and last one with translationY < 0
-                    // we're after a rect that is not covered in recycler-view views at this point in time
-
-                    View lastViewComingDown = null;
-                    View firstViewComingUp = null;
-
-                    // fixed
-                    int left = 0;
-                    int right = parent.getWidth();
-
-                    // we need to find out
-                    int top = 0;
-                    int bottom = 0;
-
-                    // find relevant translating views
-                    int childCount = parent.getLayoutManager().getChildCount();
-                    for (int i = 0; i < childCount; i++) {
-                        View child = parent.getLayoutManager().getChildAt(i);
-                        if (child.getTranslationY() < 0) {
-                            // view is coming down
-                            lastViewComingDown = child;
-                        } else if (child.getTranslationY() > 0) {
-                            // view is coming up
-                            if (firstViewComingUp == null) {
-                                firstViewComingUp = child;
-                            }
-                        }
-                    }
-
-                    if (lastViewComingDown != null && firstViewComingUp != null) {
-                        // views are coming down AND going up to fill the void
-                        top = lastViewComingDown.getBottom() + (int)lastViewComingDown.getTranslationY();
-                        bottom = firstViewComingUp.getTop() + (int) firstViewComingUp.getTranslationY();
-                    } else if (lastViewComingDown != null) {
-                        // views are going down to fill the void
-                        top = lastViewComingDown.getBottom() + (int) lastViewComingDown.getTranslationY();
-                        bottom = lastViewComingDown.getBottom();
-                    } else  if (firstViewComingUp != null){
-                        // views are coming up to fill the void
-                        top = firstViewComingUp.getTop();
-                        bottom = firstViewComingUp.getTop() + (int) firstViewComingUp.getTranslationY();
-                    }
-
-                    Drawable background = new ColorDrawable(Color.RED);
-                    background.setBounds(left, top, right, bottom);
-                    background.draw(c);
-
-                }
-                super.onDraw(c, parent, state);
-            }
-
-            private void init() {
-                background = new ColorDrawable(Color.RED);
-                initiated = true;
-            }
-        });
-    }
-
     private void setUpItemTouchHelper() {
         // Support library way of implementing swipes on recycler view items
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -159,12 +89,6 @@ public class MainActivity extends AppCompatActivity {
                 boolean undoOn = adapter.isUndoOn();
                 if (undoOn) {
                     adapter.pendingRemoval(item);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.timedRemoval(item);
-                        }
-                    }, 3000);
                 } else {
                     adapter.remove(item);
                 }
@@ -215,12 +139,88 @@ public class MainActivity extends AppCompatActivity {
         mItemTouchHelper.attachToRecyclerView(mRecyclerView);
     }
 
-    static class TestAdapter extends RecyclerView.Adapter {
+    private void setUpAnimationDecoratorHelper() {
+        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+
+            Drawable background;
+            boolean initiated;
+
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+
+                if (!initiated) {
+                    init();
+                }
+
+                if (parent.getItemAnimator().isRunning()) {
+                    // find first child with translationY > 0
+                    // and last one with translationY < 0
+                    // we're after a rect that is not covered in recycler-view views at this point in time
+
+                    View lastViewComingDown = null;
+                    View firstViewComingUp = null;
+
+                    // fixed
+                    int left = 0;
+                    int right = parent.getWidth();
+
+                    // we need to find out
+                    int top = 0;
+                    int bottom = 0;
+
+                    // find relevant translating views
+                    int childCount = parent.getLayoutManager().getChildCount();
+                    for (int i = 0; i < childCount; i++) {
+                        View child = parent.getLayoutManager().getChildAt(i);
+                        if (child.getTranslationY() < 0) {
+                            // view is coming down
+                            lastViewComingDown = child;
+                        } else if (child.getTranslationY() > 0) {
+                            // view is coming up
+                            if (firstViewComingUp == null) {
+                                firstViewComingUp = child;
+                            }
+                        }
+                    }
+
+                    if (lastViewComingDown != null && firstViewComingUp != null) {
+                        // views are coming down AND going up to fill the void
+                        top = lastViewComingDown.getBottom() + (int) lastViewComingDown.getTranslationY();
+                        bottom = firstViewComingUp.getTop() + (int) firstViewComingUp.getTranslationY();
+                    } else if (lastViewComingDown != null) {
+                        // views are going down to fill the void
+                        top = lastViewComingDown.getBottom() + (int) lastViewComingDown.getTranslationY();
+                        bottom = lastViewComingDown.getBottom();
+                    } else if (firstViewComingUp != null) {
+                        // views are coming up to fill the void
+                        top = firstViewComingUp.getTop();
+                        bottom = firstViewComingUp.getTop() + (int) firstViewComingUp.getTranslationY();
+                    }
+
+                    Drawable background = new ColorDrawable(Color.RED);
+                    background.setBounds(left, top, right, bottom);
+                    background.draw(c);
+
+                }
+                super.onDraw(c, parent, state);
+            }
+
+            private void init() {
+                background = new ColorDrawable(Color.RED);
+                initiated = true;
+            }
+        });
+    }
+
+    class TestAdapter extends RecyclerView.Adapter {
 
         List<String> items;
         List<String> itemsPendingRemoval;
         int lastInsertedIndex;
         boolean undoOn;
+
+        private Handler handler = new Handler();
+        HashMap<String, Runnable> pendingRunnables = new HashMap<>();
 
         public TestAdapter() {
             items = new ArrayList<>();
@@ -248,6 +248,9 @@ public class MainActivity extends AppCompatActivity {
                 viewHolder.undoButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        Runnable pendingRemovalRunnable = pendingRunnables.get(item);
+                        pendingRunnables.remove(item);
+                        if (pendingRemovalRunnable != null) handler.removeCallbacks(pendingRemovalRunnable);
                         itemsPendingRemoval.remove(item);
                         notifyItemChanged(items.indexOf(item));
                     }
@@ -291,11 +294,19 @@ public class MainActivity extends AppCompatActivity {
             return items.get(position);
         }
 
-        public void pendingRemoval(String item) {
+        public void pendingRemoval(final String item) {
             if (!itemsPendingRemoval.contains(item)) {
                 itemsPendingRemoval.add(item);
                 int position = items.indexOf(item);
                 notifyItemChanged(position);
+                Runnable pendingRemovalRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        timedRemoval(item);
+                    }
+                };
+                handler.postDelayed(pendingRemovalRunnable, PENDING_REMOVAL_TIMEOUT);
+                pendingRunnables.put(item, pendingRemovalRunnable);
             }
         }
 
