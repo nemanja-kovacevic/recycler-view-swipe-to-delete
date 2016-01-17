@@ -101,6 +101,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                int position = viewHolder.getAdapterPosition();
+                TestAdapter testAdapter = (TestAdapter)recyclerView.getAdapter();
+                if (testAdapter.isUndoOn() && testAdapter.isPendingRemoval(position)) {
+                    return 0;
+                }
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+
+            @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 int swipedPosition = viewHolder.getAdapterPosition();
                 TestAdapter adapter = (TestAdapter)mRecyclerView.getAdapter();
@@ -353,6 +363,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        public boolean isPendingRemoval(int position) {
+            String item = items.get(position);
+            return itemsPendingRemoval.contains(item);
+        }
     }
 
     /**
