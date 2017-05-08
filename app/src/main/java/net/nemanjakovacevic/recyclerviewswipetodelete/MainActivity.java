@@ -131,6 +131,12 @@ public class MainActivity extends AppCompatActivity {
                     // not interested in those
                     return;
                 }
+                
+                // Don't render the icon when a user aborts a swipe.
+                if (!isCurrentlyActive)
+                {
+                    return;
+                }
 
                 if (!initiated) {
                     init();
